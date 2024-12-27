@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025 Philippine Calendar</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Mode Colors */
+            --bg-primary: #f4f6f9;
+            --bg-secondary: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #34495e;
+            --holiday-bg: #FFD700;
+            --holiday-text: #333;
+            --border-color: #e0e0e0;
+            --accent-color: #3498db;
+            --weekend-bg: #f0f0f0;
+        }
+
+        [data-theme='dark'] {
+            /* Dark Mode Colors */
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #b0b0b0;
+            --holiday-bg: #FFA500;
+            --holiday-text: #ffffff;
+            --border-color: #333;
+            --accent-color: #4ecdc4;
+            --weekend-bg: #2c2c2c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: var(--text-primary);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .theme-toggle {
+            background: none;
+            color: var(--text-primary);
+            border: 2px solid var(--accent-color);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .month-card {
+            background-color: var(--bg-secondary);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 15px;
+            transition: transform 0.3s;
+        }
+
+        .month-card:hover {
+            transform: scale(1.02);
+        }
+
+        .month-card h2 {
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .calendar-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .calendar-table th {
+            background-color: var(--accent-color);
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .calendar-table td {
+            text-align: center;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+
+        .holiday {
+            background-color: var(--holiday-bg) !important;
+            color: var(--holiday-text);
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .holiday:hover {
+            background-color: color-mix(in srgb, var(--holiday-bg) 80%, white);
+        }
+
+        .holiday::after {
+            position: absolute;
+            top: -2px;
+            right: 2px;
+            font-size: 10px;
+        }
+
+        .weekend {
+            background-color: var(--weekend-bg);
+        }
+
+        @media (max-width: 1200px) {
+            .calendar-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .calendar-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            border-radius: 8px;
+            max-width: 400px;
+            width: 80%;
+        }
+
+        .modal img {
+            width: 100%;
+            height: auto;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .modal h3 {
+            margin-bottom: 10px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>2025 Philippine Calendar</h1>
+                <div class="details">Mikaila Jhay L. Bacolod | BSIT 3-5</div>
+            </div>
+            <div class="controls">
+                <button id="themeToggle" class="btn theme-toggle">
+                    <i class="fas fa-moon"></i>
+                    Theme
+                </button>
+            </div>
+        </div>
+
+        <div id="calendarContainer" class="calendar-grid"></div>
+
+        <div id="holidayModal" class="modal">
+            <button class="close-btn" id="closeModal">&times;</button>
+            <img id="holidayImage" src="" alt="Holiday Image">
+            <h3 id="holidayTitle"></h3>
+            <p id="holidayDescription"></p>
+        </div>
+        <div id="overlay" class="overlay"></div>
+    </div>
+
+    <script>
+        const philippineHolidays = {
+            January: [
+                { date: 1, name: "New Year's Day", image: "https://images.squarespace-cdn.com/content/v1/574f3e43c6fc08495714929e/1466093503328-2C8V1FAU702I8442UZNW/FILIPINO-NEW-YEAR.jpg", description: "Celebration of the first day of the Gregorian calendar year." },
+                { date: 29, name: "Chinese New Year", image: "https://images.rove.me/w_1920,q_85/iy43pdrmi1ch0umdbalu/philippines-chinese-new-year.jpg", description: "Special non-working day celebrating Chinese New Year." }
+            ],
+            April: [
+                { date: 9, name: "Araw ng Kagitingan (Day of Valor)", image: "https://media.philstar.com/photos/2020/01/17/gen1-bataan-mt-samat-honor-guards2019-04-0923-03-07_2020-01-17_13-58-44.jpg", description: "Commemorates the bravery of Filipino and American soldiers during World War II" },
+                { date: 17, name: "Maundy Thursday", image: "https://assets2.rappler.com/2021/04/washing-of-the-feet-manila-cathedral-april-1-2021-006.jpg", description: "Commemorates the Last Supper of Jesus Christ with his apostles" },
+                { date: 18, name: "Good Friday", image: "https://www.benarnews.org/english/slideshows/good-friday-04072023143532.html/@@images/image", description: "Commemorates the crucifixion of Jesus Christ" },
+                { date: 19, name: "Black Saturday", image: "https://www.rappler.com/tachyon/r3-assets/0DD5DAEE42C94AD4BD91467B0869520D/img/AA640025F9034AFD9F5D6D75134CF227/tagle-manila-cathedral-april-20-2019-002.jpg", description: "Special non-working day between Good Friday and Easter Sunday" }
+            ],
+            May: [
+                { date: 1, name: "Labor Day", image: "https://www.bworldonline.com/wp-content/uploads/2023/05/Labor-Day-2023-protest-rally-PHILSTAR-WALTER-BOLLOZOS.jpg", description: "Celebration of workers' rights and achievements" }
+            ],
+            June: [
+                { date: 12, name: "Independence Day", image: "https://www.globaltimes.cn/Portals/0//attachment/2019/2019-06-13/f3795e59-d2f4-4029-ac75-ed29068a5427.jpeg", description: "Commemorates the Philippines' declaration of independence from Spanish colonial rule" }
+            ],
+            August: [
+                { date: 21, name: "Ninoy Aquino Day", image: "https://od2-image-api.abs-cbn.com/prod/editorImage/1724233603338viber_image_2024-08-21_12-06-19-734.jpg", description: "Special non-working day honoring Ninoy Aquino" },
+                { date: 25, name: "National Heroes Day", image: "https://i.prcdn.co/img?regionKey=Ua30RdrnGNJ66hVPlC6HpQ%3D%3D", description: "Honors Filipino national heroes" }
+            ],
+            October: [
+                { date: 31, name: "All Saints' Day Eve", image: "https://c.tadst.com/gfx/900x506/istock-1205713173.jpg", description: "Special non-working day before All Saints' Day" }
+            ],
+            November: [
+                { date: 1, name: "All Saints' Day", image: "https://www.shutterstock.com/image-photo/iriga-city-philippines-november-1-600nw-746722528.jpg", description: "Day of remembrance for saints and deceased loved ones" },
+                { date: 30, name: "Bonifacio Day", image: "https://media.interaksyon.com/wp-content/uploads/2021/11/Bonifacio-Shrine-edited.jpg", description: "Commemorates the birthday of Andres Bonifacio, a key Philippine revolutionary leader" }
+            ],
+            December: [
+                { date: 8, name: "Feast of the Immaculate Conception of Mary", image: "https://www.oclarim.com.mo/en/files/2023/10/Our-Lady-of-The-Rosary.jpg", description: "Special non-working day celebrating the Immaculate Conception" },
+                { date: 24, name: "Christmas Eve", image: "https://worldmissionmagazine.com/wp-content/uploads/2023/12/de88f09b5c276e1ceb120b24eeaae147.jpg", description: "Special non-working day before Christmas Day" },
+                { date: 25, name: "Christmas Day", image: "https://assets.unileversolutions.com/v1/93476758.jpg", description: "Celebration of the birth of Jesus Christ" },
+                { date: 30, name: "Rizal Day", image: "https://media.philstar.com/photos/2019/12/29/gen4-independent-phl-edd-gumban2019-06-1223-08-38_2019-12-29_18-25-44.jpg", description: "Commemorates the execution of Dr. Jose Rizal" },
+                { date: 31, name: "Last Day of the Year", image: "https://www.bria.com.ph/wp-content/uploads/2022/12/New-Year-2012-World-Top-Photos-Confetti-drops-as-a-Filipino-_blows-his-paper-horn-in-Manila-Philippines-720162.jpg", description: "Special non-working day before the start of the new year" }
+            ]
+        };
+
+        function getHolidayInfo(month, day) {
+            const monthNames = [
+                'January', 'February', 'March', 'April', 'May', 'June', 
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            const monthName = typeof month === 'number' ? monthNames[month] : month;
+            const monthHolidays = philippineHolidays[monthName] || [];
+            return monthHolidays.find(holiday => Number(holiday.date) === Number(day));
+        }
+
+        function showHolidayModal(holiday) {
+            const modal = document.getElementById('holidayModal');
+            const overlay = document.getElementById('overlay');
+            document.getElementById('holidayImage').src = holiday.image;
+            document.getElementById('holidayTitle').textContent = holiday.name;
+            document.getElementById('holidayDescription').textContent = holiday.description;
+
+            modal.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        function hideHolidayModal() {
+            const modal = document.getElementById('holidayModal');
+            const overlay = document.getElementById('overlay');
+            modal.style.display = 'none';
+            overlay.style.display = 'none';
+        }
+
+        document.getElementById('closeModal').addEventListener('click', hideHolidayModal);
+        document.getElementById('overlay').addEventListener('click', hideHolidayModal);
+
+        function createMonthCalendar(year, month) {
+            const monthNames = [
+                'January', 'February', 'March', 'April', 'May', 'June', 
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            const monthCard = document.createElement('div');
+            monthCard.className = 'month-card';
+
+            const monthTitle = document.createElement('h2');
+            monthTitle.textContent = monthNames[month];
+            monthCard.appendChild(monthTitle);
+
+            const table = document.createElement('table');
+            table.className = 'calendar-table';
+
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+                const th = document.createElement('th');
+                th.textContent = day;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDay = new Date(year, month, 1).getDay();
+
+            let date = 1;
+            for (let i = 0; i < 6; i++) {
+                const row = document.createElement('tr');
+
+                for (let j = 0; j < 7; j++) {
+                    const cell = document.createElement('td');
+
+                    if (i === 0 && j < firstDay) {
+                        cell.textContent = '';
+                    } else if (date <= daysInMonth) {
+                        cell.textContent = date;
+                        
+                        const holidayInfo = getHolidayInfo(month, date);
+                        if (holidayInfo) {
+                            cell.classList.add('holiday');
+                            cell.addEventListener('click', () => showHolidayModal(holidayInfo));
+                        }
+
+                        date++;
+                    } else {
+                        cell.textContent = '';
+                    }
+
+                    row.appendChild(cell);
+                }
+
+                tbody.appendChild(row);
+                if (date > daysInMonth) break;
+            }
+
+            table.appendChild(tbody);
+            monthCard.appendChild(table);
+
+            return monthCard;
+        }
+
+        function populateCalendar() {
+            const calendarContainer = document.getElementById('calendarContainer');
+            calendarContainer.innerHTML = '';
+            for (let month = 0; month < 12; month++) {
+                const monthCalendar = createMonthCalendar(2025, month);
+                calendarContainer.appendChild(monthCalendar);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggleBtn = document.getElementById('themeToggle');
+
+            themeToggleBtn.addEventListener('click', () => {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? null : 'dark';
+
+                if (newTheme) {
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                }
+
+                themeToggleBtn.innerHTML = newTheme === 'dark' 
+                    ? '<i class="fas fa-sun"></i> Light Mode' 
+                    : '<i class="fas fa-moon"></i> Dark Mode';
+            });
+
+            populateCalendar();
+        });
+    </script>
+</body>
+</html>
